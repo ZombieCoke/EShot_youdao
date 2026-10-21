@@ -2394,14 +2394,37 @@ bool CaptureOverlay::captureNativeScreenImages(const QRect &logicalRect, const Q
         image.setDevicePixelRatio(1.0);
         images.append({screen->geometry(), image, grab.devicePixelRatio()});
     }
-    const QImage canvas = composeCaptureImages(images, logicalRect);
+
+    // Qt 的屏幕几何在 XWayland 混合缩放下会把位置和尺寸用成不同的像素密度，
+    // 并集比真实桌面宽出一截；那样覆盖层会被合成器顶偏，画面左移、左侧截不到，
+    // 贴图也跟着偏。发现矛盾就用截图本身的物理尺寸重建布局。
+    QRect layoutRect = logicalRect;
+    QRect layoutPhysical = physicalRect;
+    if (const QRect rebuilt = rebuildCaptureLayout(&images, logicalRect); rebuilt.isValid()) {
+        layoutRect = rebuilt;
+        const qreal rebuiltScale = captureSelectionScale(images, layoutRect);
+        layoutPhysical = QRect(QPoint(0, 0),
+                               QSize(qRound(layoutRect.width() * rebuiltScale),
+                                     qRound(layoutRect.height() * rebuiltScale)));
+        m_captureMonitors.clear();
+        for (const CaptureScreenImage &image : images) {
+            const QPoint physicalTopLeft(qRound(image.logical.x() * image.scale),
+                                         qRound(image.logical.y() * image.scale));
+            m_captureMonitors.append({image.logical,
+                                      QRect(physicalTopLeft, image.image.size()),
+                                      image.scale});
+        }
+        qInfo() << "[CaptureOverlay] rebuilt mixed-DPI layout"
+                << "qt=" << logicalRect.size() << "rebuilt=" << layoutRect.size();
+    }
+    const QImage canvas = composeCaptureImages(images, layoutRect);
     if (canvas.isNull())
         return false;
     m_screenImages = images;
     m_screenSnapshot = QPixmap::fromImage(canvas);
-    m_virtualDesktopRect = logicalRect;
-    m_physicalVirtualDesktopTopLeft = physicalRect.topLeft();
-    m_dpr = captureSelectionScale(images, logicalRect);
+    m_virtualDesktopRect = layoutRect;
+    m_physicalVirtualDesktopTopLeft = layoutPhysical.topLeft();
+    m_dpr = captureSelectionScale(images, layoutRect);
     qInfo() << "[CaptureOverlay] selected capture backend=kwin-per-screen"
             << "canvas=" << canvas.size() << "scale=" << m_dpr;
     return true;
@@ -2412,6 +2435,11 @@ QPoint CaptureOverlay::capturePositionFromGlobal(const QPoint &point) const
     if (m_screenViews)
         return point - m_virtualDesktopRect.topLeft();
     return mapFromGlobal(point);
+}
+
+QPoint CaptureOverlay::globalPointFromCanvas(const QPoint &point) const
+{
+    return m_virtualDesktopRect.topLeft() + point;
 }
 
 void CaptureOverlay::paintEvent(QPaintEvent *event)
@@ -4371,7 +4399,7 @@ void CaptureOverlay::onOcrRequested()
 
     if (dlg.hasPinnedImage()) {
         QRect selRect = normalizedSelectionRect();
-        new PinnedWindow(QPixmap::fromImage(dlg.pinnedImage()), mapToGlobal(selRect.topLeft()));
+        new PinnedWindow(QPixmap::fromImage(dlg.pinnedImage()), globalPointFromCanvas(selRect.topLeft()));
         hide();
         m_selectionComplete = false;
         m_isSelecting = false;
@@ -4431,7 +4459,7 @@ void CaptureOverlay::onAutoTranslateFinished(const YoudaoProtocol::Result &resul
         return;
 
     // 和手动"贴回原位"走同一条收尾路径。
-    new PinnedWindow(QPixmap::fromImage(rendered), mapToGlobal(selRect.topLeft()));
+    new PinnedWindow(QPixmap::fromImage(rendered), globalPointFromCanvas(selRect.topLeft()));
     hide();
     m_selectionComplete = false;
     m_isSelecting = false;
@@ -5153,7 +5181,7 @@ void CaptureOverlay::onPinToDesktop()
     if (result.isNull()) return;
 
     QRect selRect = normalizedSelectionRect();
-    QPoint screenPos = mapToGlobal(selRect.topLeft());
+    QPoint screenPos = globalPointFromCanvas(selRect.topLeft());
 
     // PinnedWindow shows itself and is deleted when closed (WA_DeleteOnClose).
     new PinnedWindow(result, screenPos);

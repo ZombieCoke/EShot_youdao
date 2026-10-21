@@ -94,6 +94,9 @@ private:
     bool captureNativeScreenImages(const QRect &logicalRect, const QRect &physicalRect);
     void presentCapture();
     QPoint capturePositionFromGlobal(const QPoint &point) const;
+    // 画布坐标 → 桌面逻辑坐标。故意不走 mapToGlobal：覆盖层万一被合成器摆偏，
+    // mapToGlobal 会把那份偏移一起带进贴图位置。
+    QPoint globalPointFromCanvas(const QPoint &point) const;
     void startCaptureInternal(CaptureSelectionMode selectionMode, bool recordingMode);
     void showToolbar();
     void hideToolbar();

@@ -2,6 +2,7 @@
 #include "CaptureGeometry.h"
 
 #include <QtMath>
+#include <algorithm>
 
 namespace {
 bool isUsable(const CaptureScreenImage &screen)
@@ -75,6 +76,69 @@ QImage composeCaptureImages(const QVector<CaptureScreenImage> &screens,
         painter.drawImage(destination, screen.image, source);
     }
     return result;
+}
+
+QRect rebuildCaptureLayout(QVector<CaptureScreenImage> *screens, const QRect &qtUnion)
+{
+    if (!screens || screens->size() < 2)
+        return {};
+    for (const CaptureScreenImage &screen : *screens) {
+        if (!isUsable(screen))
+            return {};
+    }
+
+    // Qt 报的尺寸一旦和"物理像素 ÷ 缩放"对不上，就说明它给位置和尺寸用了不同
+    // 的像素密度。XWayland 混合缩放正是这样：第二块屏的位置按设备像素报，
+    // 尺寸却按逻辑像素报，并集于是比真实桌面宽出一截。
+    bool inconsistent = false;
+    for (const CaptureScreenImage &screen : *screens) {
+        const QSize expected(qCeil(screen.image.width() / screen.scale),
+                             qCeil(screen.image.height() / screen.scale));
+        if (qAbs(screen.logical.width() - expected.width()) > 2
+            || qAbs(screen.logical.height() - expected.height()) > 2) {
+            inconsistent = true;
+            break;
+        }
+    }
+    if (!inconsistent)
+        return {};
+
+    // 位置的单位不可信，但左右/上下顺序仍然可信：按 Qt 的坐标排序，再用真实
+    // 逻辑尺寸紧贴排布。多屏基本是横着或竖着一排，取跨度大的方向。
+    QRect bounds = qtUnion;
+    if (!bounds.isValid()) {
+        for (const CaptureScreenImage &screen : *screens)
+            bounds = bounds.united(screen.logical);
+    }
+    const bool horizontal = bounds.width() >= bounds.height();
+
+    QVector<int> order;
+    order.reserve(screens->size());
+    for (int i = 0; i < screens->size(); ++i)
+        order.append(i);
+    std::sort(order.begin(), order.end(), [&](int a, int b) {
+        const QRect &ra = (*screens)[a].logical;
+        const QRect &rb = (*screens)[b].logical;
+        if (horizontal)
+            return ra.x() != rb.x() ? ra.x() < rb.x() : ra.y() < rb.y();
+        return ra.y() != rb.y() ? ra.y() < rb.y() : ra.x() < rb.x();
+    });
+
+    QPoint cursor(0, 0);
+    QRect packed;
+    for (int index : order) {
+        CaptureScreenImage &screen = (*screens)[index];
+        // 向上取整：宁可多 1 像素也不要比真实桌面窄，窄了会露出没被覆盖的边。
+        const QSize logical(qCeil(screen.image.width() / screen.scale),
+                            qCeil(screen.image.height() / screen.scale));
+        screen.logical = QRect(cursor, logical);
+        packed = packed.united(screen.logical);
+        if (horizontal)
+            cursor.rx() += logical.width();
+        else
+            cursor.ry() += logical.height();
+    }
+    return packed;
 }
 
 void paintCaptureImages(QPainter *painter,

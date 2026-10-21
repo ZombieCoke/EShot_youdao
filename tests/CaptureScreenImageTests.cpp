@@ -35,6 +35,8 @@ private slots:
     void preservesCrossOutputSelectionWithSharpPixelDuplication();
     void handlesNegativeOutputPositionsAndDesktopGaps();
     void keepsFractionalScaleSelectionSizeStable();
+    void rebuildsMixedDpiLayoutWhenQtMixesUnits();
+    void keepsConsistentLayoutUntouched();
     void ignoresInvalidAndUntouchedOutputs();
 };
 
@@ -137,6 +139,33 @@ void CaptureScreenImageTests::ignoresInvalidAndUntouchedOutputs()
     QCOMPARE(captureSelectionScale(screens, screens[1].logical), 1.0);
     QVERIFY(composeCaptureImages(screens, QRect(100, 100, 10, 10)).isNull());
     QVERIFY(composeCaptureImages(screens, QRect()).isNull());
+}
+
+void CaptureScreenImageTests::rebuildsMixedDpiLayoutWhenQtMixesUnits()
+{
+    // 实测来自一台 KDE Wayland 机器：DP-3 2560x1440@1.3、HDMI-A-1 1920x1080@1.25。
+    // Qt 把第二块屏的位置按 XWayland 设备像素报（2561），尺寸却按逻辑像素报，
+    // 于是并集是 4107x1115，而真实桌面只有 3506x1108。
+    QVector<CaptureScreenImage> screens = {
+        {QRect(0, 0, 1970, 1108), pixelPattern(QSize(2560, 1440)), 1.3},
+        {QRect(2561, 0, 1546, 869), pixelPattern(QSize(1920, 1080)), 1.25}
+    };
+    const QRect rebuilt = rebuildCaptureLayout(&screens, QRect(0, 0, 4107, 1115));
+    QCOMPARE(rebuilt, QRect(0, 0, 3506, 1108));
+    QCOMPARE(screens[0].logical, QRect(0, 0, 1970, 1108));
+    QCOMPARE(screens[1].logical, QRect(1970, 0, 1536, 864));
+}
+
+void CaptureScreenImageTests::keepsConsistentLayoutUntouched()
+{
+    // Qt 报的尺寸和"物理像素 ÷ 缩放"一致时不该动它，否则会破坏本来正确的平台。
+    QVector<CaptureScreenImage> screens = {
+        {QRect(0, 0, 1970, 1108), pixelPattern(QSize(2560, 1440)), 1.3},
+        {QRect(1970, 0, 1536, 864), pixelPattern(QSize(1920, 1080)), 1.25}
+    };
+    QVERIFY(!rebuildCaptureLayout(&screens, QRect(0, 0, 3506, 1108)).isValid());
+    QCOMPARE(screens[0].logical, QRect(0, 0, 1970, 1108));
+    QCOMPARE(screens[1].logical, QRect(1970, 0, 1536, 864));
 }
 
 QTEST_APPLESS_MAIN(CaptureScreenImageTests)
