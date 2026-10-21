@@ -258,7 +258,8 @@ jobs:
         run: |
           $release = "${{ env.TESSERACT_RUNTIME_RELEASE }}"
           $archive = "EShot-$release-${{ matrix.arch }}-portable.zip"
-          $url = "https://github.com/${{ github.repository }}/releases/download/$release/$archive"
+          # 运行时包只发布在上游仓库；fork 上跑 CI 时回落到上游，否则 404。
+          $url = "https://github.com/Benoks/EShot/releases/download/$release/$archive"
           curl.exe -L --fail --retry 3 --retry-delay 5 -o tesseract-runtime.zip $url
           if ($LASTEXITCODE -ne 0) { throw "Could not download $archive" }
           Expand-Archive tesseract-runtime.zip -DestinationPath tesseract-runtime -Force
