@@ -1563,6 +1563,10 @@ QWidget* SettingsDialog::createHotkeyTab()
                        QStringLiteral("GIF"), m_gifCaptureHotkeyEdit);
     addActionHotkeyRow(HotkeyManager::HOTKEY_VIDEO_CAPTURE, TranslationManager::tr("hotkeyVideoLabel"),
                        labelName(TranslationManager::tr("hotkeyVideoLabel")), m_videoCaptureHotkeyEdit);
+    m_translateCaptureHotkeyEdit = makeRecordingHotkeyEdit();
+    m_translateCaptureHotkeyEdit->setToolTip(TranslationManager::tr("tipTranslateCaptureHotkey"));
+    addActionHotkeyRow(HotkeyManager::HOTKEY_TRANSLATE_CAPTURE, TranslationManager::tr("hotkeyTranslateLabel"),
+                       labelName(TranslationManager::tr("hotkeyTranslateLabel")), m_translateCaptureHotkeyEdit);
     gl->addWidget(actionGroup);
 
     QGroupBox *recordingGroup = new QGroupBox(TranslationManager::videoRecordingTitle());
@@ -2356,6 +2360,10 @@ void SettingsDialog::loadSettings()
         m_windowCaptureHotkeyEdit->setKeySequence(win32ToKeySequence(
             static_cast<UINT>(m_settings->value("windowCaptureHotkeyModifiers", defaultWindowCaptureModifiers()).toUInt()),
             static_cast<UINT>(m_settings->value("windowCaptureHotkeyVKey", defaultWindowCaptureVirtualKey()).toUInt())));
+    if (m_translateCaptureHotkeyEdit)
+        m_translateCaptureHotkeyEdit->setKeySequence(win32ToKeySequence(
+            static_cast<UINT>(m_settings->value("translateCaptureHotkeyModifiers", 0).toUInt()),
+            static_cast<UINT>(m_settings->value("translateCaptureHotkeyVKey", 0).toUInt())));
     for (const auto &def : overlayShortcutDefaults()) {
         if (QKeySequenceEdit *edit = m_overlayHotkeyEdits.value(def.key, nullptr)) {
             edit->setKeySequence(QKeySequence(m_settings->value(QStringLiteral("overlayShortcut/%1").arg(def.key),
@@ -2622,10 +2630,12 @@ void SettingsDialog::onSave()
     UINT gifMod = 0, gifVKey = 0;
     UINT videoMod = 0, videoVKey = 0;
     UINT windowMod = 0, windowVKey = 0;
+    UINT translateMod = 0, translateVKey = 0;
     if (!optionalHotkey(m_instantCaptureHotkeyEdit, instantMod, instantVKey) ||
         !optionalHotkey(m_gifCaptureHotkeyEdit, gifMod, gifVKey) ||
         !optionalHotkey(m_videoCaptureHotkeyEdit, videoMod, videoVKey) ||
-        !optionalHotkey(m_windowCaptureHotkeyEdit, windowMod, windowVKey)) {
+        !optionalHotkey(m_windowCaptureHotkeyEdit, windowMod, windowVKey) ||
+        !optionalHotkey(m_translateCaptureHotkeyEdit, translateMod, translateVKey)) {
         QMessageBox::warning(this, TranslationManager::errInvalidHotkeyTitle(), TranslationManager::errInvalidHotkey());
         return;
     }
@@ -2649,6 +2659,24 @@ void SettingsDialog::onSave()
         settingsHotkeyChanged({windowMod, windowVKey},
                               {static_cast<quint32>(m_settings->value("windowCaptureHotkeyModifiers", defaultWindowCaptureModifiers()).toUInt()),
                                static_cast<quint32>(m_settings->value("windowCaptureHotkeyVKey", defaultWindowCaptureVirtualKey()).toUInt())});
+    // 翻译热键：设了键就等于要走有道上行，没确认过上传告知就先问一次。
+    const bool translateHotkeyChanged =
+        settingsHotkeyChanged({translateMod, translateVKey},
+                              {static_cast<quint32>(m_settings->value("translateCaptureHotkeyModifiers", 0).toUInt()),
+                               static_cast<quint32>(m_settings->value("translateCaptureHotkeyVKey", 0).toUInt())});
+    if (translateMod != 0 || translateVKey != 0) {
+        if (!m_settings->value("youdaoNoticeAccepted", false).toBool()) {
+            const auto answer = QMessageBox::question(
+                this, TranslationManager::ocrYoudaoNoticeTitle(),
+                TranslationManager::ocrYoudaoNoticeBody(),
+                QMessageBox::Ok | QMessageBox::Cancel);
+            if (answer != QMessageBox::Ok) {
+                m_translateCaptureHotkeyEdit->clear();
+                return;
+            }
+            m_settings->setValue("youdaoNoticeAccepted", true);
+        }
+    }
     // Apply startup changes before persisting anything: if they fail, no
     // partial settings are written (onSave partial success guard).
     const bool wantAutoStart = m_autoStartCheck->isChecked();
@@ -2755,6 +2783,16 @@ void SettingsDialog::onSave()
         return;
     }
 
+
+    if (translateHotkeyChanged
+        && !HotkeyManager::instance().reRegisterTranslateCaptureHotkey(translateMod, translateVKey)) {
+        QMessageBox::warning(
+            this, TranslationManager::errInvalidHotkeyTitle(),
+            HotkeyManager::shortcutText(translateMod, translateVKey)
+                + QStringLiteral("\n\n") + TranslationManager::hotkeyMayBeInUse());
+        rollBackCapture();
+        return;
+    }
 
     // Save language
     QString newLang = m_langCombo->currentData().toString();
@@ -2868,6 +2906,8 @@ void SettingsDialog::onSave()
     m_settings->setValue("videoCaptureHotkeyVKey",        videoVKey);
     m_settings->setValue("windowCaptureHotkeyModifiers", windowMod);
     m_settings->setValue("windowCaptureHotkeyVKey",      windowVKey);
+    m_settings->setValue("translateCaptureHotkeyModifiers", translateMod);
+    m_settings->setValue("translateCaptureHotkeyVKey",      translateVKey);
     for (auto it = m_overlayHotkeyEdits.constBegin(); it != m_overlayHotkeyEdits.constEnd(); ++it) {
         if (it.value())
             m_settings->setValue(QStringLiteral("overlayShortcut/%1").arg(it.key()),

@@ -33,6 +33,10 @@ public:
                                  UINT gifModifiers, UINT gifVirtualKey,
                                  UINT videoModifiers, UINT videoVirtualKey,
                                  UINT windowModifiers, UINT windowVirtualKey);
+    // 翻译截图单独一组：失败时只影响它自己，不牵连其它动作热键。
+    bool reRegisterTranslateCaptureHotkey(UINT modifiers, UINT virtualKey);
+    UINT translateCaptureModifiers() const { return m_translateCaptureModifiers; }
+    UINT translateCaptureVirtualKey() const { return m_translateCaptureVirtualKey; }
     bool requestLinuxPortalShortcutRebind();
     bool linuxPortalShortcutsAvailable() const;
     UINT captureModifiers() const { return m_captureModifiers; }
@@ -68,6 +72,7 @@ signals:
     void gifCaptureRequested();
     void videoCaptureRequested();
     void windowCaptureRequested();
+    void translateCaptureRequested();
     // Emitted when configured hotkeys stop being or could not become active
     // outside a reRegister*() request; see failedHotkeys().
     void hotkeyRegistrationFailed(const QList<int> &ids);
@@ -98,6 +103,8 @@ private:
     UINT m_videoCaptureVirtualKey = 0;
     UINT m_windowCaptureModifiers = 0;
     UINT m_windowCaptureVirtualKey = 0;
+    UINT m_translateCaptureModifiers = 0;
+    UINT m_translateCaptureVirtualKey = 0;
     void *m_x11Display = nullptr;
     unsigned long m_x11RootWindow = 0;
     LinuxPortalGlobalShortcuts *m_portalShortcuts = nullptr;
@@ -125,6 +132,7 @@ public:
     static constexpr int HOTKEY_GIF_CAPTURE = 6;
     static constexpr int HOTKEY_VIDEO_CAPTURE = 7;
     static constexpr int HOTKEY_WINDOW_CAPTURE = 8;
+    static constexpr int HOTKEY_TRANSLATE_CAPTURE = 9;
 };
 
 #endif

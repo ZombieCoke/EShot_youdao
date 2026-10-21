@@ -62,6 +62,8 @@ public:
     explicit CaptureOverlay(QWidget *parent = nullptr);
     ~CaptureOverlay();
     void startCapture();
+    // 翻译热键专用入口：框选松手就送有道，不看设置里的开关。
+    void startCaptureForTranslation();
     void startWindowCapture();
     void startInstantCapture();
     void startCaptureForRecording();
@@ -358,8 +360,10 @@ private:
     // 有道自动翻译：框选松手就发请求，结果按选区尺寸原位贴图。
     YoudaoTranslate *m_autoTranslate = nullptr;
     QSize m_autoTranslateSourceSize;
+    // 由翻译热键置位，选区完成时消费掉。
+    bool m_forceTranslate = false;
 
-    void startAutoTranslateOnSelection();
+    void startAutoTranslateOnSelection(bool forced = false);
 
 private slots:
     void onToolSelected(int toolId);

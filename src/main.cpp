@@ -342,6 +342,18 @@ public slots:
         m_overlay->startCapture();
     }
 
+    // 翻译热键：直接进入截图，框选松手就把选区送去有道，不依赖设置里的开关。
+    void onTranslateCaptureRequested()
+    {
+        if (closeBlockingDialogs()) {
+            QTimer::singleShot(80, this, &EShotApp::onTranslateCaptureRequested);
+            return;
+        }
+        if (m_overlay && m_overlay->isVisible()) return;
+        ensureOverlay();
+        m_overlay->startCaptureForTranslation();
+    }
+
     void onWindowCaptureRequested()
     {
 #ifdef Q_OS_WIN
@@ -1747,6 +1759,8 @@ private:
                 this, &EShotApp::onRecordVideoRequested);
         connect(&HotkeyManager::instance(), &HotkeyManager::windowCaptureRequested,
                 this, &EShotApp::onWindowCaptureRequested);
+        connect(&HotkeyManager::instance(), &HotkeyManager::translateCaptureRequested,
+                this, &EShotApp::onTranslateCaptureRequested);
         connect(&HotkeyManager::instance(), &HotkeyManager::recordingPauseRequested,
                 this, &EShotApp::toggleActiveRecordingPause);
         connect(&HotkeyManager::instance(), &HotkeyManager::recordingStopRequested, this, [this]() {

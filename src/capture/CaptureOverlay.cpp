@@ -1838,7 +1838,16 @@ void CaptureOverlay::prewarm()
 
 void CaptureOverlay::startCapture()
 {
+    m_forceTranslate = false;
     startCaptureInternal(CaptureSelectionMode::FreeRegion, false);
+}
+
+void CaptureOverlay::startCaptureForTranslation()
+{
+    qInfo() << "[CaptureOverlay] translate capture requested";
+    startCapture();
+    // 必须在 startCapture() 之后置位：它会先清掉上一轮的残留。
+    m_forceTranslate = true;
 }
 
 void CaptureOverlay::startWindowCapture()
@@ -3989,6 +3998,7 @@ void CaptureOverlay::finishCapture()
 
 void CaptureOverlay::cancelCapture()
 {
+    m_forceTranslate = false;
     if (m_autoTranslate)
         m_autoTranslate->cancel();
     hide();
@@ -4410,10 +4420,10 @@ void CaptureOverlay::onOcrRequested()
     }
 }
 
-void CaptureOverlay::startAutoTranslateOnSelection()
+void CaptureOverlay::startAutoTranslateOnSelection(bool forced)
 {
     QSettings settings(QStringLiteral("EShot"), QStringLiteral("EShot"));
-    if (!settings.value(QStringLiteral("youdaoAutoTranslateOnSelect"), false).toBool())
+    if (!forced && !settings.value(QStringLiteral("youdaoAutoTranslateOnSelect"), false).toBool())
         return;
     // 没确认过"选区会上传"就不发，避免静默上传。
     if (!settings.value(QStringLiteral("youdaoNoticeAccepted"), false).toBool())
@@ -4862,8 +4872,12 @@ void CaptureOverlay::completeSelection(const QRect &selectionRect)
     showSelectionOnboarding();
     update();
 
-    if (m_captureMode == ModeNormal)
-        startAutoTranslateOnSelection();
+    if (m_captureMode == ModeNormal) {
+        // 翻译热键触发的一次性标记，用完即清，免得下一轮普通截图被带跑。
+        const bool forced = m_forceTranslate;
+        m_forceTranslate = false;
+        startAutoTranslateOnSelection(forced);
+    }
 }
 
 void CaptureOverlay::applyAutoSelectionLock()

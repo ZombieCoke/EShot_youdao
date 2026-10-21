@@ -177,6 +177,7 @@ private:
     QKeySequenceEdit *m_instantCaptureHotkeyEdit = nullptr;
     QKeySequenceEdit *m_gifCaptureHotkeyEdit = nullptr;
     QKeySequenceEdit *m_videoCaptureHotkeyEdit = nullptr;
+    QKeySequenceEdit *m_translateCaptureHotkeyEdit = nullptr;
     QKeySequenceEdit *m_windowCaptureHotkeyEdit = nullptr;
     QMap<QString, QKeySequenceEdit*> m_overlayHotkeyEdits;
     // Global hotkeys cross-checked for duplicates (HotkeyManager ids).

@@ -279,6 +279,10 @@ HotkeyManager::HotkeyManager(QObject *parent) : QObject(parent)
         qWarning() << "[HotkeyManager] Window capture hotkey could not be registered";
         recordFailure(HOTKEY_WINDOW_CAPTURE, m_windowCaptureModifiers, m_windowCaptureVirtualKey);
     }
+    m_translateCaptureModifiers = static_cast<UINT>(s.value("translateCaptureHotkeyModifiers", 0).toUInt());
+    m_translateCaptureVirtualKey = static_cast<UINT>(s.value("translateCaptureHotkeyVKey", 0).toUInt());
+    if (!registerHotkey(HOTKEY_TRANSLATE_CAPTURE, m_translateCaptureModifiers, m_translateCaptureVirtualKey))
+        recordFailure(HOTKEY_TRANSLATE_CAPTURE, m_translateCaptureModifiers, m_translateCaptureVirtualKey);
 }
 
 QList<HotkeyBinding> HotkeyManager::recordingHotkeyBindings() const
@@ -795,6 +799,22 @@ bool HotkeyManager::reRegisterActionHotkeys(UINT instantModifiers, UINT instantV
     return ok;
 }
 
+bool HotkeyManager::reRegisterTranslateCaptureHotkey(UINT modifiers, UINT virtualKey)
+{
+    const UINT oldModifiers = m_translateCaptureModifiers;
+    const UINT oldVirtualKey = m_translateCaptureVirtualKey;
+
+    unregisterHotkey(HOTKEY_TRANSLATE_CAPTURE);
+    if (!registerHotkey(HOTKEY_TRANSLATE_CAPTURE, modifiers, virtualKey)) {
+        unregisterHotkey(HOTKEY_TRANSLATE_CAPTURE);
+        restoreHotkeys({{HOTKEY_TRANSLATE_CAPTURE, oldModifiers, oldVirtualKey}});
+        return false;
+    }
+    m_translateCaptureModifiers = modifiers;
+    m_translateCaptureVirtualKey = virtualKey;
+    return true;
+}
+
 void HotkeyManager::restoreHotkeys(const QList<HotkeyBinding> &previous)
 {
     // Called after a refused reRegister*(): the caller reports the rejected
@@ -838,6 +858,7 @@ void HotkeyManager::emitHotkey(int id)
     else if (id == HOTKEY_GIF_CAPTURE) emit gifCaptureRequested();
     else if (id == HOTKEY_VIDEO_CAPTURE) emit videoCaptureRequested();
     else if (id == HOTKEY_WINDOW_CAPTURE) emit windowCaptureRequested();
+    else if (id == HOTKEY_TRANSLATE_CAPTURE) emit translateCaptureRequested();
 }
 
 void HotkeyManager::refreshPortalShortcuts()
