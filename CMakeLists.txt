@@ -34,6 +34,8 @@ set(SOURCES
     src/core/ApplicationInstanceCommand.cpp
     src/core/OcrEngine.cpp
     src/core/OcrLanguageSelector.cpp
+    src/core/YoudaoProtocol.cpp
+    src/core/YoudaoTranslate.cpp
     src/core/LinuxPortalGlobalShortcuts.cpp
     src/core/LinuxPortalScreenCast.cpp
     src/core/LinuxPortalScreenshot.cpp
@@ -923,6 +925,11 @@ if(BUILD_TESTING)
             LIBS Qt6::Core Qt6::DBus
         )
     endif()
+
+    eshot_add_test(eshot_youdao_translate_tests youdao_translate
+        SOURCES tests/YoudaoTranslateTests.cpp src/core/YoudaoProtocol.cpp src/core/YoudaoTranslate.cpp
+        LIBS Qt6::Gui Qt6::Network
+    )
 endif()
 
 if(UNIX AND NOT APPLE)

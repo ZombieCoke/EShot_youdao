@@ -348,6 +348,26 @@ public:
     static QString ocrProcessing()    { return tr("ocrProcessing"); }
     static QString ocrAutomatic()     { return tr("ocrAutomatic"); }
     static QString ocrLanguagePackMissing() { return tr("ocrLanguagePackMissing"); }
+    static QString ocrEngine()               { return tr("ocrEngine"); }
+    static QString ocrEngineLocal()          { return tr("ocrEngineLocal"); }
+    static QString ocrEngineYoudao()         { return tr("ocrEngineYoudao"); }
+    static QString ocrSourceText()           { return tr("ocrSourceText"); }
+    static QString ocrTargetText()           { return tr("ocrTargetText"); }
+    static QString ocrCopySource()           { return tr("ocrCopySource"); }
+    static QString ocrCopyTarget()           { return tr("ocrCopyTarget"); }
+    static QString ocrCopyAllSource()        { return tr("ocrCopyAllSource"); }
+    static QString ocrCopyAllTarget()        { return tr("ocrCopyAllTarget"); }
+    static QString ocrPinInPlace()           { return tr("ocrPinInPlace"); }
+    static QString ocrYoudaoNoticeTitle()    { return tr("ocrYoudaoNoticeTitle"); }
+    static QString ocrYoudaoNoticeBody()     { return tr("ocrYoudaoNoticeBody"); }
+    static QString ocrYoudaoAuthFailed()     { return tr("ocrYoudaoAuthFailed"); }
+    static QString ocrYoudaoNoText()         { return tr("ocrYoudaoNoText"); }
+    static QString ocrYoudaoNetworkFailed()  { return tr("ocrYoudaoNetworkFailed"); }
+    static QString ocrYoudaoTranslateFailed(){ return tr("ocrYoudaoTranslateFailed"); }
+    static QString ocrYoudaoLangUnsupported(){ return tr("ocrYoudaoLangUnsupported"); }
+    static QString ocrYoudaoImageFailed()    { return tr("ocrYoudaoImageFailed"); }
+    static QString ocrYoudaoRenderedOnly()   { return tr("ocrYoudaoRenderedOnly"); }
+    static QString ocrYoudaoBusy()           { return tr("ocrYoudaoBusy"); }
 
     // ─── Kayıt (Recording) ───
     static QString recordingStart()   { return tr("recordingStart"); }
@@ -758,6 +778,26 @@ private:
         {"ocrTranslateBrowserError", {"Google Translate varsayılan tarayıcınızda açılamadı.", "Google Translate could not be opened in your default browser.", "Google Translate konnte nicht im Standardbrowser geöffnet werden.", "Google Translate n’a pas pu être ouvert dans votre navigateur par défaut.", "No se pudo abrir Google Translate en el navegador predeterminado.", "Google Translate を既定のブラウザーで開けませんでした。", "无法在默认浏览器中打开 Google 翻译。", "Не удалось открыть Google Translate в браузере по умолчанию."}},
         {"ocrProcessing",  {"Tanınıyor...", "Recognizing...", "Erkennung...", "Reconnaissance...", "Reconociendo...", "認識中...", "识别中...", "Распознавание..."}},
         {"ocrAutomatic",   {"Otomatik", "Automatic", "Automatisch", "Automatique", "Automático", "自動", "自动", "Автоматически"}},
+        {"ocrEngine",      {"OCR Motoru", "OCR Engine", "OCR-Engine", "Moteur OCR", "Motor OCR", "OCR エンジン", "OCR 引擎", "Движок OCR"}},
+        {"ocrEngineLocal", {"Yerel Tesseract", "Local Tesseract", "Lokales Tesseract", "Tesseract local", "Tesseract local", "ローカル Tesseract", "本地 Tesseract", "Локальный Tesseract"}},
+        {"ocrEngineYoudao",{"Youdao Çevrimiçi Çeviri", "Youdao Online Translate", "Youdao Online-Übersetzung", "Traduction en ligne Youdao", "Traducción en línea de Youdao", "有道オンライン翻訳", "有道在线翻译", "Онлайн-перевод Youdao"}},
+        {"ocrSourceText",  {"Kaynak Metin", "Source Text", "Quelltext", "Texte source", "Texto de origen", "原文", "原文", "Исходный текст"}},
+        {"ocrTargetText",  {"Çeviri Metni", "Translation", "Übersetzung", "Traduction", "Traducción", "訳文", "译文", "Перевод"}},
+        {"ocrCopySource",  {"Kaynağı Kopyala", "Copy Source", "Quelltext kopieren", "Copier la source", "Copiar origen", "原文をコピー", "复制原文", "Копировать оригинал"}},
+        {"ocrCopyTarget",  {"Çeviriyi Kopyala", "Copy Translation", "Übersetzung kopieren", "Copier la traduction", "Copiar traducción", "訳文をコピー", "复制译文", "Копировать перевод"}},
+        {"ocrCopyAllSource",{"Tüm Kaynağı Kopyala", "Copy All Source", "Alle Quelltexte kopieren", "Copier toute la source", "Copiar todo el origen", "すべての原文をコピー", "复制全部原文", "Копировать весь оригинал"}},
+        {"ocrCopyAllTarget",{"Tüm Çeviriyi Kopyala", "Copy All Translation", "Alle Übersetzungen kopieren", "Copier toute la traduction", "Copiar toda la traducción", "すべての訳文をコピー", "复制全部译文", "Копировать весь перевод"}},
+        {"ocrPinInPlace",  {"Yerine Sabitle", "Pin in Place", "An Ort anheften", "Épingler sur place", "Fijar en el lugar", "元の位置に固定", "贴回原位", "Закрепить на месте"}},
+        {"ocrYoudaoNoticeTitle", {"Youdao Çevrimiçi Çeviri Bildirimi", "Youdao Online Translation Notice", "Hinweis zur Youdao Online-Übersetzung", "Avis sur la traduction en ligne Youdao", "Aviso de traducción en línea de Youdao", "有道オンライン翻訳に関する注意事項", "有道在线翻译提示", "Уведомление об онлайн-переводе Youdao"}},
+        {"ocrYoudaoNoticeBody", {"Seçilen alan görüntüsü ocrtran.youdao.com adresine yüklenecektir. Bu arayüz resmi bir Youdao genel arayüzü değildir ve her an geçersiz olabilir. Devam etmek istiyor musunuz?", "The selected image will be uploaded to ocrtran.youdao.com. This is not an official public API from Youdao and may become unavailable at any time. Do you want to continue?", "Das ausgewählte Bild wird auf ocrtran.youdao.com hochgeladen. Dies ist keine offizielle öffentliche Schnittstelle von Youdao und kann jederzeit ungültig werden. Möchten Sie fortfahren?", "L’image de la zone sélectionnée sera téléversée sur ocrtran.youdao.com. Cette interface n’est pas une API publique officielle de Youdao et peut cesser de fonctionner à tout moment. Voulez-vous continuer ?", "La imagen de la selección se subirá a ocrtran.youdao.com. Esta interfaz no es una API pública oficial de Youdao y puede dejar de funcionar en cualquier momento. ¿Desea continuar?", "選択範囲の画像は ocrtran.youdao.com にアップロードされます。このインターフェースは有道（Youdao）の公式公開 API ではないため、いつでも利用できなくなる可能性があります。続行しますか？", "选区图片将上传至 ocrtran.youdao.com，该接口不是有道官方公开接口，可能随时失效。是否继续？", "Изображение выбранной области будет загружено на ocrtran.youdao.com. Этот интерфейс не является официальным публичным API Youdao и может перестать работать в любое время. Продолжить?"}},
+        {"ocrYoudaoAuthFailed", {"Kimlik doğrulama başarısız oldu. Dahili anahtar geçersiz olabilir.", "Authentication failed. The built-in key may have expired.", "Authentifizierung fehlgeschlagen. Der integrierte Schlüssel ist möglicherweise abgelaufen.", "Échec de l’authentification. La clé intégrée a peut-être expiré.", "Error de autenticación. Es posible que la clave integrada haya caducado.", "認証に失敗しました。内蔵キーが無効になった可能性があります。", "鉴权失败，内置密钥可能已失效。", "Ошибка аутентификации. Возможно, встроенный ключ устарел."}},
+        {"ocrYoudaoNoText",{"Metin tespit edilemedi", "No text detected", "Kein Text erkannt", "Aucun texte détecté", "No se detectó texto", "文字が検出されませんでした", "未识别到文字", "Текст не обнаружен"}},
+        {"ocrYoudaoNetworkFailed", {"Ağ isteği başarısız oldu", "Network request failed", "Netzwerkanfrage fehlgeschlagen", "Échec de la requête réseau", "Error en la solicitud de red", "ネットワークリクエストに失敗しました", "网络请求失败", "Ошибка сетевого запроса"}},
+        {"ocrYoudaoTranslateFailed", {"Çeviri başarısız oldu", "Translation failed", "Übersetzung fehlgeschlagen", "Échec de la traduction", "Error en la traducción", "翻訳に失敗しました", "翻译失败", "Ошибка перевода"}},
+        {"ocrYoudaoLangUnsupported", {"Dil parametresi desteklenmiyor", "Language parameter is not supported", "Sprachparameter wird nicht unterstützt", "Paramètre de langue non pris en charge", "Parámetro de idioma no compatible", "言語パラメータはサポートされていません", "语言参数不支持", "Параметр языка не поддерживается"}},
+        {"ocrYoudaoImageFailed", {"Görüntü boş veya işleme başarısız oldu", "Image is empty or processing failed", "Bild ist leer oder Verarbeitung fehlgeschlagen", "L’image est vide ou le traitement a échoué", "La imagen está vacía o falló el procesamiento", "画像が空か処理に失敗しました", "图片为空或处理失败", "Изображение пустое или произошла ошибка обработки"}},
+        {"ocrYoudaoRenderedOnly", {"Sunucu yalnızca çevrilmiş görüntüyü döndürdü", "Server only returned the rendered translation image", "Der Server hat nur das übersetzte Bild zurückgegeben", "Le serveur a renvoyé uniquement l’image traduite", "El servidor solo devolvió la imagen de traducción renderizada", "サーバーは翻訳画像のみを返しました", "服务端仅返回译文图", "Сервер вернул только изображение перевода"}},
+        {"ocrYoudaoBusy",  {"Çevriliyor...", "Translating...", "Übersetzen...", "Traduction en cours...", "Traduciendo...", "翻訳中...", "翻译中...", "Перевод..."}},
 
         // ─── Kayıt (Recording) ───
         {"recordingStart", {"Kaydı Başlat", "Start Recording", "Aufnahme starten", "Démarrer l'enregistrement", "Iniciar grabación", "録画開始", "开始录制", "Начать запись"}},

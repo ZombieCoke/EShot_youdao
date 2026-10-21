@@ -4365,6 +4365,18 @@ void CaptureOverlay::onOcrRequested()
     OcrDialog dlg(pix);
     dlg.exec();
     restoreAfterModalDialog();
+
+    if (dlg.hasPinnedImage()) {
+        QRect selRect = normalizedSelectionRect();
+        new PinnedWindow(QPixmap::fromImage(dlg.pinnedImage()), mapToGlobal(selRect.topLeft()));
+        hide();
+        m_selectionComplete = false;
+        m_isSelecting = false;
+        m_selectionAnchorScreenRect = QRect();
+        hideToolbar();
+        cancelTextEdit();
+        releaseCaptureBuffers();
+    }
 }
 
 void CaptureOverlay::onUploadRequested()
