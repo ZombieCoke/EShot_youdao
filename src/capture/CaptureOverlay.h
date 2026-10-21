@@ -18,6 +18,7 @@
 
 #include "recording/RecordingDrawerPolicy.h"
 #include "annotation/AnnotationEngine.h"
+#include "core/YoudaoProtocol.h"
 #include <QIcon>
 
 class HintBubble;
@@ -36,6 +37,7 @@ using EShotNativeWindowHandle = void *;
 #endif
 
 class AnnotationToolbar;
+class YoudaoTranslate;
 class QComboBox;
 class QFontComboBox;
 class QLineEdit;
@@ -350,6 +352,12 @@ private:
     enum CaptureMode { ModeNormal, ModeRecording };
     CaptureMode m_captureMode;
 
+    // 有道自动翻译：框选松手就发请求，结果按选区尺寸原位贴图。
+    YoudaoTranslate *m_autoTranslate = nullptr;
+    QSize m_autoTranslateSourceSize;
+
+    void startAutoTranslateOnSelection();
+
 private slots:
     void onToolSelected(int toolId);
     void onCopyToClipboard();
@@ -359,6 +367,8 @@ private slots:
     void onEyedropperRequested();
     void onSelectionLockToggled(bool locked);
     void onOcrRequested();
+    void onAutoTranslateFinished(const YoudaoProtocol::Result &result);
+    void onAutoTranslateFailed(const QString &reason, int errorCode);
     void onUploadRequested();
     void onGoogleLensRequested();
     // Toolbar record button: the drawer in the last used mode.

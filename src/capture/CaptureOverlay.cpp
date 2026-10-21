@@ -21,6 +21,7 @@
 #include "core/LinuxPortalScreenshot.h"
 #include "core/LinuxScreenshotPolicy.h"
 #include "core/VisualSearch.h"
+#include "core/YoudaoTranslate.h"
 #include "recording/AudioDevices.h"
 #include "recording/LinuxRecordingSupport.h"
 #include "recording/RecordingSettingsPolicy.h"
@@ -3960,6 +3961,8 @@ void CaptureOverlay::finishCapture()
 
 void CaptureOverlay::cancelCapture()
 {
+    if (m_autoTranslate)
+        m_autoTranslate->cancel();
     hide();
     m_selectionComplete = false;
     m_isSelecting = false;
@@ -4379,6 +4382,85 @@ void CaptureOverlay::onOcrRequested()
     }
 }
 
+void CaptureOverlay::startAutoTranslateOnSelection()
+{
+    QSettings settings(QStringLiteral("EShot"), QStringLiteral("EShot"));
+    if (!settings.value(QStringLiteral("youdaoAutoTranslateOnSelect"), false).toBool())
+        return;
+    // 没确认过"选区会上传"就不发，避免静默上传。
+    if (!settings.value(QStringLiteral("youdaoNoticeAccepted"), false).toBool())
+        return;
+
+    QPixmap pix = getSelectedPixmap();
+    if (pix.isNull())
+        return;
+
+    if (!m_autoTranslate) {
+        m_autoTranslate = new YoudaoTranslate(this);
+        connect(m_autoTranslate, &YoudaoTranslate::finished,
+                this, &CaptureOverlay::onAutoTranslateFinished);
+        connect(m_autoTranslate, &YoudaoTranslate::failed,
+                this, &CaptureOverlay::onAutoTranslateFailed);
+    }
+    m_autoTranslate->setSecret(settings.value(QStringLiteral("youdaoSecret")).toString());
+
+    const QString ocrTag = settings.value(QStringLiteral("ocrLanguage"), QStringLiteral("auto")).toString();
+    const QString from = YoudaoProtocol::mapLanguage(ocrTag, true);
+    const QString to = YoudaoProtocol::mapLanguage(TranslationManager::langCode(), false);
+
+    m_autoTranslateSourceSize = pix.size();
+    m_autoTranslate->translate(pix.toImage(), from, to, true);
+}
+
+void CaptureOverlay::onAutoTranslateFinished(const YoudaoProtocol::Result &result)
+{
+    // 用户已经取消或换了选区，就别再贴一张过期图。
+    if (!isVisible() || !m_selectionComplete)
+        return;
+    if (result.rendered.isNull())
+        return;
+
+    QImage rendered = result.rendered;
+    if (m_autoTranslateSourceSize.isValid() && rendered.size() != m_autoTranslateSourceSize) {
+        rendered = rendered.scaled(m_autoTranslateSourceSize, Qt::IgnoreAspectRatio,
+                                   Qt::SmoothTransformation);
+    }
+
+    const QRect selRect = normalizedSelectionRect();
+    if (selRect.isEmpty())
+        return;
+
+    // 和手动"贴回原位"走同一条收尾路径。
+    new PinnedWindow(QPixmap::fromImage(rendered), mapToGlobal(selRect.topLeft()));
+    hide();
+    m_selectionComplete = false;
+    m_isSelecting = false;
+    m_selectionAnchorScreenRect = QRect();
+    hideToolbar();
+    cancelTextEdit();
+    releaseCaptureBuffers();
+}
+
+void CaptureOverlay::onAutoTranslateFailed(const QString &reason, int errorCode)
+{
+    if (!isVisible())
+        return;
+
+    QString message;
+    switch (errorCode) {
+    case 10: message = TranslationManager::ocrYoudaoNoText(); break;
+    case 20: message = TranslationManager::ocrYoudaoTranslateFailed(); break;
+    case 30: message = TranslationManager::ocrYoudaoAuthFailed(); break;
+    case 40: message = TranslationManager::ocrYoudaoLangUnsupported(); break;
+    case 60: message = TranslationManager::ocrYoudaoImageFailed(); break;
+    default:
+        message = TranslationManager::ocrYoudaoNetworkFailed()
+            + QStringLiteral(": ") + reason;
+        break;
+    }
+    QMessageBox::warning(this, TranslationManager::ocrYoudaoNoticeTitle(), message);
+}
+
 void CaptureOverlay::onUploadRequested()
 {
     QPixmap pix = getSelectedPixmap();
@@ -4751,6 +4833,9 @@ void CaptureOverlay::completeSelection(const QRect &selectionRect)
     updateCursor(bounded.center());
     showSelectionOnboarding();
     update();
+
+    if (m_captureMode == ModeNormal)
+        startAutoTranslateOnSelection();
 }
 
 void CaptureOverlay::applyAutoSelectionLock()

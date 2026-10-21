@@ -358,6 +358,7 @@ public:
     static QString ocrCopyAllSource()        { return tr("ocrCopyAllSource"); }
     static QString ocrCopyAllTarget()        { return tr("ocrCopyAllTarget"); }
     static QString ocrPinInPlace()           { return tr("ocrPinInPlace"); }
+    static QString youdaoAutoTranslate()     { return tr("youdaoAutoTranslate"); }
     static QString ocrYoudaoNoticeTitle()    { return tr("ocrYoudaoNoticeTitle"); }
     static QString ocrYoudaoNoticeBody()     { return tr("ocrYoudaoNoticeBody"); }
     static QString ocrYoudaoAuthFailed()     { return tr("ocrYoudaoAuthFailed"); }
@@ -798,6 +799,8 @@ private:
         {"ocrYoudaoImageFailed", {"Görüntü boş veya işleme başarısız oldu", "Image is empty or processing failed", "Bild ist leer oder Verarbeitung fehlgeschlagen", "L’image est vide ou le traitement a échoué", "La imagen está vacía o falló el procesamiento", "画像が空か処理に失敗しました", "图片为空或处理失败", "Изображение пустое или произошла ошибка обработки"}},
         {"ocrYoudaoRenderedOnly", {"Sunucu yalnızca çevrilmiş görüntüyü döndürdü", "Server only returned the rendered translation image", "Der Server hat nur das übersetzte Bild zurückgegeben", "Le serveur a renvoyé uniquement l’image traduite", "El servidor solo devolvió la imagen de traducción renderizada", "サーバーは翻訳画像のみを返しました", "服务端仅返回译文图", "Сервер вернул только изображение перевода"}},
         {"ocrYoudaoBusy",  {"Çevriliyor...", "Translating...", "Übersetzen...", "Traduction en cours...", "Traduciendo...", "翻訳中...", "翻译中...", "Перевод..."}},
+        {"youdaoAutoTranslate", {"Seçimden sonra otomatik çevir", "Translate automatically after selection", "Nach der Auswahl automatisch übersetzen", "Traduire automatiquement après la sélection", "Traducir automáticamente tras la selección", "選択後に自動翻訳", "框选后自动翻译", "Автоматически переводить после выделения"}},
+        {"tipYoudaoAutoTranslate", {"Seçim tamamlanınca bölge ocrtran.youdao.com'a gönderilir ve çevrilmiş görsel seçimin üzerine yerleştirilir. Çevrimdışı kalmak için kapalı bırakın.", "When the selection is complete, the region is sent to ocrtran.youdao.com and the translated image is placed over it. Leave this off to stay offline.", "Nach Abschluss der Auswahl wird der Bereich an ocrtran.youdao.com gesendet und das übersetzte Bild darüber gelegt. Ausgeschaltet bleiben Sie offline.", "Une fois la sélection terminée, la zone est envoyée à ocrtran.youdao.com et l'image traduite est posée dessus. Laissez désactivé pour rester hors ligne.", "Al terminar la selección, la zona se envía a ocrtran.youdao.com y la imagen traducida se coloca encima. Déjalo desactivado para seguir sin conexión.", "選択が終わると、その範囲が ocrtran.youdao.com に送られ、翻訳画像が上に重ねて表示されます。オフラインのままにする場合はオフにしてください。", "框选结束后把该区域发送到 ocrtran.youdao.com，并把译文图贴在选区上。想保持纯离线识别就关掉它。", "После завершения выделения область отправляется на ocrtran.youdao.com, а переведённое изображение накладывается сверху. Чтобы оставаться офлайн, оставьте выключенным."}},
 
         // ─── Kayıt (Recording) ───
         {"recordingStart", {"Kaydı Başlat", "Start Recording", "Aufnahme starten", "Démarrer l'enregistrement", "Iniciar grabación", "録画開始", "开始录制", "Начать запись"}},

@@ -856,8 +856,11 @@ QWidget* SettingsDialog::createCaptureTab()
     m_closeAfterCopyCheck->setToolTip(TranslationManager::tr("tipCloseAfterCopy"));
     m_instantCopyAfterSelectionCheck = new QCheckBox(TranslationManager::tr("instantCopyAfterSelection"));
     m_instantCopyAfterSelectionCheck->setToolTip(TranslationManager::tr("tipInstantCopyAfterSelection"));
+    m_youdaoAutoTranslateCheck = new QCheckBox(TranslationManager::youdaoAutoTranslate());
+    m_youdaoAutoTranslateCheck->setToolTip(TranslationManager::tr("tipYoudaoAutoTranslate"));
     capLayout->addRow(m_closeAfterCopyCheck);
     capLayout->addRow(m_instantCopyAfterSelectionCheck);
+    capLayout->addRow(m_youdaoAutoTranslateCheck);
     m_rememberLastAnnotationToolCheck = new QCheckBox(TranslationManager::rememberLastAnnotationTool());
     m_rememberLastAnnotationToolCheck->setToolTip(TranslationManager::rememberLastAnnotationToolHint());
     capLayout->addRow(m_rememberLastAnnotationToolCheck);
@@ -2198,6 +2201,9 @@ void SettingsDialog::loadSettings()
         m_rememberLastAnnotationToolCheck->setChecked(m_settings->value("rememberLastAnnotationTool", false).toBool());
     if (m_autoLockSelectionCheck)
         m_autoLockSelectionCheck->setChecked(m_settings->value("autoLockSelection", false).toBool());
+    if (m_youdaoAutoTranslateCheck)
+        m_youdaoAutoTranslateCheck->setChecked(
+            m_settings->value("youdaoAutoTranslateOnSelect", false).toBool());
 
     // Moves untouched pre-preset defaults to Balanced (see the policy) and
     // keeps a chosen "Custom".
@@ -2796,6 +2802,21 @@ void SettingsDialog::onSave()
                          m_instantCopyAfterSelectionCheck ? m_instantCopyAfterSelectionCheck->isChecked() : false);
     m_settings->setValue("rememberLastAnnotationTool",
                          m_rememberLastAnnotationToolCheck ? m_rememberLastAnnotationToolCheck->isChecked() : false);
+    // 打开自动翻译等于同意把选区上传到有道，没确认过就在保存时问一次；拒绝就保持关闭。
+    if (m_youdaoAutoTranslateCheck && m_youdaoAutoTranslateCheck->isChecked()
+        && !m_settings->value("youdaoNoticeAccepted", false).toBool()) {
+        const auto answer = QMessageBox::question(
+            this,
+            TranslationManager::ocrYoudaoNoticeTitle(),
+            TranslationManager::ocrYoudaoNoticeBody(),
+            QMessageBox::Ok | QMessageBox::Cancel);
+        if (answer == QMessageBox::Ok)
+            m_settings->setValue("youdaoNoticeAccepted", true);
+        else
+            m_youdaoAutoTranslateCheck->setChecked(false);
+    }
+    m_settings->setValue("youdaoAutoTranslateOnSelect",
+                         m_youdaoAutoTranslateCheck && m_youdaoAutoTranslateCheck->isChecked());
     m_settings->setValue("autoLockSelection",
                          m_autoLockSelectionCheck ? m_autoLockSelectionCheck->isChecked() : false);
 
@@ -2978,6 +2999,7 @@ void SettingsDialog::onExportSettings()
     obj["instantCopyAfterSelection"] = m_instantCopyAfterSelectionCheck ? m_instantCopyAfterSelectionCheck->isChecked() : false;
     obj["rememberLastAnnotationTool"] = m_rememberLastAnnotationToolCheck ? m_rememberLastAnnotationToolCheck->isChecked() : false;
     obj["autoLockSelection"] = m_autoLockSelectionCheck ? m_autoLockSelectionCheck->isChecked() : false;
+    obj["youdaoAutoTranslateOnSelect"] = m_youdaoAutoTranslateCheck ? m_youdaoAutoTranslateCheck->isChecked() : false;
     obj["darkMode"] = m_darkModeCheck->isChecked();
     obj["overlayOpacity"] = m_opacitySlider->value();
     obj["crosshairStyle"] = m_crosshairStyleCombo->currentData().toString();
@@ -3144,8 +3166,10 @@ void SettingsDialog::onImportSettings()
         m_instantCopyAfterSelectionCheck->setChecked(obj["instantCopyAfterSelection"].toBool());
     if (m_rememberLastAnnotationToolCheck && obj.contains("rememberLastAnnotationTool"))
         m_rememberLastAnnotationToolCheck->setChecked(obj["rememberLastAnnotationTool"].toBool());
-    if (m_autoLockSelectionCheck && obj.contains("autoLockSelection"))
+    if (obj.contains("autoLockSelection") && m_autoLockSelectionCheck)
         m_autoLockSelectionCheck->setChecked(obj["autoLockSelection"].toBool());
+    if (obj.contains("youdaoAutoTranslateOnSelect") && m_youdaoAutoTranslateCheck)
+        m_youdaoAutoTranslateCheck->setChecked(obj["youdaoAutoTranslateOnSelect"].toBool());
     if (obj.contains("darkMode")) m_darkModeCheck->setChecked(obj["darkMode"].toBool());
     if (obj.contains("overlayOpacity")) m_opacitySlider->setValue(obj["overlayOpacity"].toInt());
     if (obj.contains("crosshairStyle")) {
