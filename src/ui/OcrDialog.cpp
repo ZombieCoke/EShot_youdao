@@ -50,7 +50,7 @@ OcrDialog::OcrDialog(const QPixmap &pixmap, QWidget *parent)
     m_languageTag = settings.value(QStringLiteral("ocrLanguage"), m_languageTag).toString();
     m_preferredLanguageTag = settings.value(
         QStringLiteral("ocrPreferredLanguage"), TranslationManager::langCode()).toString();
-    m_engineType = settings.value(QStringLiteral("ocrEngine"), QStringLiteral("tesseract")).toString();
+    m_engineType = settings.value(QStringLiteral("ocrEngine"), QStringLiteral("youdao")).toString();
     const QString customSecret = settings.value(QStringLiteral("youdaoSecret")).toString();
     if (!customSecret.trimmed().isEmpty()) {
         m_youdao->setSecret(customSecret);
@@ -94,8 +94,8 @@ OcrDialog::OcrDialog(const QPixmap &pixmap, QWidget *parent)
     auto *engineRow = new QHBoxLayout();
     m_engineLabel = new QLabel(QStringLiteral("%1:").arg(TranslationManager::ocrEngine()), this);
     m_engineCombo = new QComboBox(this);
-    m_engineCombo->addItem(TranslationManager::ocrEngineLocal(), QStringLiteral("tesseract"));
     m_engineCombo->addItem(TranslationManager::ocrEngineYoudao(), QStringLiteral("youdao"));
+    m_engineCombo->addItem(TranslationManager::ocrEngineLocal(), QStringLiteral("tesseract"));
     const int initialEngineIdx = m_engineCombo->findData(m_engineType);
     if (initialEngineIdx >= 0) {
         m_engineCombo->setCurrentIndex(initialEngineIdx);
@@ -385,6 +385,18 @@ void OcrDialog::finishOcrRun()
 
 void OcrDialog::runOcr()
 {
+    // 有道是默认引擎：首次使用必须先确认"选区会上传"，拒绝就退回本地识别。
+    if (m_engineType == QStringLiteral("youdao") && !ensureYoudaoConsent()) {
+        m_engineType = QStringLiteral("tesseract");
+        QSettings settings(QStringLiteral("EShot"), QStringLiteral("EShot"));
+        settings.setValue(QStringLiteral("ocrEngine"), m_engineType);
+        const QSignalBlocker blocker(m_engineCombo);
+        const int tessIdx = m_engineCombo->findData(QStringLiteral("tesseract"));
+        if (tessIdx >= 0)
+            m_engineCombo->setCurrentIndex(tessIdx);
+        updateEngineUi();
+    }
+
     m_ocrRunning = true;
     setBusy(true);
     if (m_engineType == QStringLiteral("youdao")) {
@@ -445,6 +457,22 @@ void OcrDialog::onLanguageChanged(int index)
     }
 }
 
+bool OcrDialog::ensureYoudaoConsent()
+{
+    QSettings settings(QStringLiteral("EShot"), QStringLiteral("EShot"));
+    if (settings.value(QStringLiteral("youdaoNoticeAccepted"), false).toBool())
+        return true;
+    const auto reply = QMessageBox::question(
+        this,
+        TranslationManager::ocrYoudaoNoticeTitle(),
+        TranslationManager::ocrYoudaoNoticeBody(),
+        QMessageBox::Ok | QMessageBox::Cancel);
+    if (reply != QMessageBox::Ok)
+        return false;
+    settings.setValue(QStringLiteral("youdaoNoticeAccepted"), true);
+    return true;
+}
+
 void OcrDialog::onEngineChanged(int index)
 {
     if (index < 0) return;
@@ -452,24 +480,13 @@ void OcrDialog::onEngineChanged(int index)
     if (newEngine == m_engineType) return;
 
     if (newEngine == QStringLiteral("youdao")) {
-        QSettings settings(QStringLiteral("EShot"), QStringLiteral("EShot"));
-        const bool accepted = settings.value(QStringLiteral("youdaoNoticeAccepted"), false).toBool();
-        if (!accepted) {
-            const auto reply = QMessageBox::question(
-                this,
-                TranslationManager::ocrYoudaoNoticeTitle(),
-                TranslationManager::ocrYoudaoNoticeBody(),
-                QMessageBox::Ok | QMessageBox::Cancel
-            );
-            if (reply != QMessageBox::Ok) {
-                const QSignalBlocker blocker(m_engineCombo);
-                const int tessIdx = m_engineCombo->findData(QStringLiteral("tesseract"));
-                if (tessIdx >= 0) {
-                    m_engineCombo->setCurrentIndex(tessIdx);
-                }
-                return;
+        if (!ensureYoudaoConsent()) {
+            const QSignalBlocker blocker(m_engineCombo);
+            const int tessIdx = m_engineCombo->findData(QStringLiteral("tesseract"));
+            if (tessIdx >= 0) {
+                m_engineCombo->setCurrentIndex(tessIdx);
             }
-            settings.setValue(QStringLiteral("youdaoNoticeAccepted"), true);
+            return;
         }
     }
 

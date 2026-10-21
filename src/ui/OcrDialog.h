@@ -47,6 +47,8 @@ private:
     void setBusy(bool busy);
     void translateUi();
     void updateEngineUi();
+    // 有道要上传选区，第一次用之前必须让用户明确同意。
+    bool ensureYoudaoConsent();
     void runOcr();
     void runTesseract();
     void runYoudao();
