@@ -106,6 +106,16 @@ export QMAKE="${qmake_wrapper}"
 export PATH="${tools_dir}:${PATH}"
 "${linuxdeploy}" --appdir "${appdir}" --plugin qt
 
+# Qt 的 OpenSSL 后端是运行时用 dlopen 去找 libssl.so.3 / libcrypto.so.3 的，
+# 而 --plugin qt 只会带进 libcrypto。少了 libssl，Qt 就退回 cert-only，
+# 所有 HTTPS 请求直接 TLS initialization failed，所以这里必须显式补上。
+openssl_libssl="$(ldconfig -p 2>/dev/null | awk '/libssl\.so\.3 /{print $NF; exit}')"
+if [[ -n "${openssl_libssl}" && -f "${openssl_libssl}" ]]; then
+  install -Dm644 "${openssl_libssl}" "${appdir}/usr/lib/$(basename "${openssl_libssl}")"
+  "${linuxdeploy}" --appdir "${appdir}" --deploy-deps-only \
+    "${appdir}/usr/lib/$(basename "${openssl_libssl}")"
+fi
+
 # linuxdeploy-plugin-qt deploys the platform used by the build process (xcb),
 # but EShot deliberately falls back to native Wayland when XWayland is absent.
 # Copy the Qt Wayland client plugins explicitly, then let linuxdeploy resolve

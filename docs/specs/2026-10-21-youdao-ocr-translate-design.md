@@ -322,6 +322,10 @@ Tesseract，不写设置。
    贴回原位会比选区小一圈（实测 3040 宽的选区，渲染图只有 2000 宽）。现在 bbox 在对话框内
    乘 `1/uploadScale` 换算回原图像素，贴图前再把渲染图缩放到选区尺寸。
 4. **`scaledBox()` 有了真实调用方**（第 3 条的换算），不再是被测试单独调用的死代码。
+5. **打包脚本补进 `libssl.so.3`**。Qt 的 OpenSSL 后端在运行时用 `dlopen` 找 `libssl.so.3`，
+   而 `linuxdeploy --plugin qt` 只带 libcrypto。第一版 AppImage 因此退回 cert-only，
+   所有 HTTPS 请求报 `TLS initialization failed`。现在显式安装 libssl 并让 linuxdeploy
+   解析它的依赖。
 
 验证记录：
 
@@ -333,4 +337,6 @@ Tesseract，不写设置。
 | 真实接口（420x140 英文图） | HTTP 200，232 ms，1 个区域，渲染图 420x140 |
 | 真实接口（3040x1200 放大图） | HTTP 200，572 ms，3 个区域，uploadScale 0.658，bbox 换算回原图正确 |
 | `timeout 8 xvfb-run ./build/bin/EShot` | 存活到超时（退出码 124），无崩溃输出 |
+| AppImage 解包库跑真实请求 | HTTP 200，325 ms，1 个区域（证明包内 TLS 可用） |
+| AppImage 启动 10 秒 | 退出码 124，无 TLS/崩溃报错 |
 
