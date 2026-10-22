@@ -169,7 +169,15 @@ Do not use visual search for private or sensitive screenshots.
 
 ## OCR
 
-OCR is powered by Tesseract. The first-run wizard can install English, the system language, and additional language data. Missing languages remain visible but disabled so the missing dependency is clear. The OCR result dialog can copy recognized text or open it in Google Translate. Translation opens the browser and does not send OCR text through an EShot translation service.
+OCR runs on **Youdao online recognition** by default. A single request to `ocrtran.youdao.com` returns every recognized line with its bounding box plus the translated text, so the result dialog can show the original and the translation side by side, copy either of them, or paste the server-rendered translation back over the selected region. The recognition language defaults to `auto`, letting the server detect the script.
+
+The first recognition uploads the selected region to `ocrtran.youdao.com`. That endpoint is not an official public Youdao API and may stop working at any time, so EShot asks for confirmation once before the first upload and remembers the answer. Declining the notice switches the engine back to local Tesseract and stores that choice.
+
+Local **Tesseract** remains available as an offline engine; select it in the engine dropdown of the OCR dialog. The first-run wizard can install English, the system language, and additional language data. Missing languages remain visible but disabled so the missing dependency is clear.
+
+Failures are reported as they are and never fall back to Tesseract silently, so it is always clear whether the image left the machine.
+
+Translation mode has its own hotkey, unbound by default. Bind it in **Settings > Hotkeys > Action hotkeys** to capture a region and translate it in one step, without opening the OCR dialog. The hotkey ignores the "translate after selection" setting but still respects the first-upload confirmation.
 
 ## Upload services
 
@@ -283,6 +291,18 @@ Build the installer with Inno Setup 6:
 ```powershell
 iscc EShot_Setup.iss
 ```
+
+## Repository contents
+
+Only sources, tests, packaging scripts and the documentation that ships with a release are tracked here. Everything else stays on the developer's machine and is listed in `.gitignore`:
+
+| Category | Paths |
+| --- | --- |
+| Intermediate build output | `build*/`, `EShot.AppDir/`, `packages/`, `dist/`, `installer_output/`, `*.AppImage` |
+| Design notes and implementation plans | `docs/specs/`, `docs/plans/` |
+| Project goals and roadmap drafts | `docs/goals/`, `GOALS.md`, `ROADMAP.md` |
+
+Keeping them untracked means a fresh clone contains nothing that can drift away from the code, and drafts can be rewritten freely without adding noise to history.
 
 ## Third-party components
 

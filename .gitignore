@@ -115,3 +115,19 @@ ROADMAP.md
 # Local Codex planning artifacts
 docs/superpowers/
 dist-windows/
+
+# Intermediate build output
+build*/
+EShot.AppDir/
+packages/
+dist/
+installer_output/
+*.AppImage
+
+# Design notes and implementation plans
+docs/specs/
+docs/plans/
+
+# Project goals and roadmap drafts
+docs/goals/
+GOALS.md
