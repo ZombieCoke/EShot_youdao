@@ -34,7 +34,7 @@ grep -F 'release-assets/EShot-Setup-arm64/*.exe' "${workflow}" >/dev/null
 grep -F '      - linux-build' "${workflow}" >/dev/null
 grep -F 'release-assets/EShot-linux-packages/EShot-${{ github.ref_name }}-x86_64.AppImage' "${workflow}" >/dev/null
 grep -F 'body_path: packaging/release-notes/${{ github.ref_name }}.md' "${workflow}" >/dev/null
-grep -F 'https://img.shields.io/github/v/tag/Benoks/EShot?label=release&sort=semver' "${repo_root}/README.md" >/dev/null
+grep -F 'https://github.com/ZombieCoke/EShot_youdao/actions/workflows/build.yml/badge.svg' "${repo_root}/README.md" >/dev/null
 grep -F "TESSERACT_RUNTIME_RELEASE: 'v4.1.2'" "${workflow}" >/dev/null
 # FFmpeg comes from a pinned, checksummed BtbN release, and only ffmpeg.exe is bundled.
 if grep -F 'master-latest' "${workflow}" >/dev/null; then
