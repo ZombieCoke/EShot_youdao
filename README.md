@@ -204,7 +204,7 @@ Do not use visual search for private or sensitive screenshots.
 
 ## OCR
 
-OCR runs on **Youdao online recognition** by default. A single request to `ocrtran.youdao.com` returns every recognized line with its bounding box plus the translated text, so the result dialog can show the original and the translation side by side, copy either of them, or paste the server-rendered translation back over the selected region. The recognition language defaults to `auto`, letting the server detect the script.
+OCR runs on **Youdao online recognition** by default. A single request to `ocrtran.youdao.com` returns every recognized line with its bounding box plus the translated text, so the result dialog can show the original and the translation side by side, copy either of them, or paste the server-rendered translation back over the selected region. The recognition language defaults to `auto`, letting the server detect the script. The translation target is chosen in the same dialog, remembered across runs, and reused by the translation hotkey.
 
 The first recognition uploads the selected region to `ocrtran.youdao.com`. That endpoint is not an official public Youdao API and may stop working at any time, so EShot asks for confirmation once before the first upload and remembers the answer. Declining the notice switches the engine back to local Tesseract and stores that choice.
 

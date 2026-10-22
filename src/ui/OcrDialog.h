@@ -49,6 +49,8 @@ private:
     void updateEngineUi();
     // 有道要上传选区，第一次用之前必须让用户明确同意。
     bool ensureYoudaoConsent();
+    // 当前选中的翻译目标语言（有道代码）；未选择时跟随界面语言。
+    QString youdaoTargetCode() const;
     void runOcr();
     void runTesseract();
     void runYoudao();
@@ -75,6 +77,8 @@ private:
     QComboBox *m_langCombo;
     QLabel *m_engineLabel;
     QComboBox *m_engineCombo;
+    QLabel *m_targetLabel = nullptr;
+    QComboBox *m_targetCombo = nullptr;
     QLabel *m_statusLabel;
     QStackedWidget *m_stack;
     QTextEdit *m_textEdit;

@@ -4444,7 +4444,13 @@ void CaptureOverlay::startAutoTranslateOnSelection(bool forced)
 
     const QString ocrTag = settings.value(QStringLiteral("ocrLanguage"), QStringLiteral("auto")).toString();
     const QString from = YoudaoProtocol::mapLanguage(ocrTag, true);
-    const QString to = YoudaoProtocol::mapLanguage(TranslationManager::langCode(), false);
+    // 目标语言和 OCR 对话框共用同一份设置；没设过就跟随界面语言。
+    QSettings targetSettings(QStringLiteral("EShot"), QStringLiteral("EShot"));
+    QString targetCode = targetSettings.value(QStringLiteral("youdaoTargetLanguage")).toString();
+    if (targetCode.isEmpty()) {
+        targetCode = TranslationManager::langCode();
+    }
+    const QString to = YoudaoProtocol::mapLanguage(targetCode, false);
 
     m_autoTranslateSourceSize = pix.size();
     m_autoTranslate->translate(pix.toImage(), from, to, true);

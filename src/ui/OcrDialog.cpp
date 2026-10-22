@@ -107,6 +107,35 @@ OcrDialog::OcrDialog(const QPixmap &pixmap, QWidget *parent)
     engineRow->addStretch();
     layout->addLayout(engineRow);
 
+    // 翻译目标语言：只有有道会翻译，本地 Tesseract 选中时整行隐藏。
+    auto *targetRow = new QHBoxLayout();
+    m_targetLabel = new QLabel(QStringLiteral("%1:").arg(TranslationManager::ocrTargetLanguage()), this);
+    m_targetCombo = new QComboBox(this);
+    for (const auto &option : YoudaoProtocol::targetLanguageOptions()) {
+        m_targetCombo->addItem(option.name, option.code);
+    }
+    const QString savedTarget = settings.value(QStringLiteral("youdaoTargetLanguage")).toString();
+    const int initialTargetIdx = m_targetCombo->findData(
+        savedTarget.isEmpty()
+            ? YoudaoProtocol::mapLanguage(TranslationManager::langCode(), false)
+            : savedTarget);
+    if (initialTargetIdx >= 0) {
+        m_targetCombo->setCurrentIndex(initialTargetIdx);
+    }
+    connect(m_targetCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this](int) {
+        QSettings targetSettings(QStringLiteral("EShot"), QStringLiteral("EShot"));
+        targetSettings.setValue(QStringLiteral("youdaoTargetLanguage"),
+                                m_targetCombo->currentData().toString());
+        // 已经有结果时换目标语言，直接重跑一次，省得用户再点重试。
+        if (m_engineType == QStringLiteral("youdao") && !m_pixmap.isNull()) {
+            requestOcr();
+        }
+    });
+    targetRow->addWidget(m_targetLabel);
+    targetRow->addWidget(m_targetCombo);
+    targetRow->addStretch();
+    layout->addLayout(targetRow);
+
     m_statusLabel = new QLabel(TranslationManager::ocrProcessing(), this);
     layout->addWidget(m_statusLabel);
 
@@ -342,6 +371,14 @@ void OcrDialog::updateEngineUi()
     m_copyAllTargetBtn->setVisible(isYoudao);
     m_pinBtn->setVisible(isYoudao);
     m_retranslateBtn->setVisible(isYoudao);
+
+    // 目标语言只对有道的翻译有意义。
+    if (m_targetLabel) {
+        m_targetLabel->setVisible(isYoudao);
+    }
+    if (m_targetCombo) {
+        m_targetCombo->setVisible(isYoudao);
+    }
 }
 
 void OcrDialog::setBusy(bool busy)
@@ -432,8 +469,7 @@ void OcrDialog::runYoudao()
     }
     const QString from = YoudaoProtocol::mapLanguage(eshotTag, true);
 
-    const QString code = TranslationManager::langCode();
-    const QString to = YoudaoProtocol::mapLanguage(code, false);
+    const QString to = youdaoTargetCode();
 
     m_youdao->translate(m_pixmap.toImage(), from, to, true);
 }
@@ -455,6 +491,17 @@ void OcrDialog::onLanguageChanged(int index)
         if (!m_initialRunPending)
             requestOcr();
     }
+}
+
+QString OcrDialog::youdaoTargetCode() const
+{
+    if (m_targetCombo) {
+        const QString code = m_targetCombo->currentData().toString();
+        if (!code.isEmpty()) {
+            return code;
+        }
+    }
+    return YoudaoProtocol::mapLanguage(TranslationManager::langCode(), false);
 }
 
 bool OcrDialog::ensureYoudaoConsent()

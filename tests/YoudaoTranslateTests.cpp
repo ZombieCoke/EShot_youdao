@@ -18,6 +18,7 @@ private slots:
     void verifiesSignBoundarySafety();
     void verifiesRandomSaltShape();
     void verifiesLanguageMappingTable();
+    void verifiesTargetLanguageOptions();
     void verifiesParseResponseSuccessAndVariants();
     void verifiesParseResponseErrorCodes();
     void verifiesScaledBox();
@@ -141,6 +142,28 @@ void YoudaoTranslateTests::verifiesLanguageMappingTable()
     QCOMPARE(YoudaoProtocol::mapLanguage(QStringLiteral("ukr"), false), QStringLiteral("en"));
     QCOMPARE(YoudaoProtocol::mapLanguage(QStringLiteral("unknown_lang"), true), QStringLiteral("en"));
     QCOMPARE(YoudaoProtocol::mapLanguage(QString(), true), QStringLiteral("en"));
+}
+
+void YoudaoTranslateTests::verifiesTargetLanguageOptions()
+{
+    const auto options = YoudaoProtocol::targetLanguageOptions();
+    QVERIFY(options.size() >= 10);
+
+    // 每个可选项都必须能被 mapLanguage 原样接受，否则用户选了却发出别的语言。
+    for (const auto &option : options) {
+        QCOMPARE(YoudaoProtocol::mapLanguage(option.code, false), option.code);
+        QVERIFY(!option.name.isEmpty());
+    }
+
+    // 代码不重复，且简繁中文都在。
+    QStringList codes;
+    for (const auto &option : options) {
+        QVERIFY2(!codes.contains(option.code), qPrintable(option.code));
+        codes << option.code;
+    }
+    QVERIFY(codes.contains(QStringLiteral("zh-CHS")));
+    QVERIFY(codes.contains(QStringLiteral("zh-CHT")));
+    QVERIFY(codes.contains(QStringLiteral("en")));
 }
 
 void YoudaoTranslateTests::verifiesParseResponseSuccessAndVariants()

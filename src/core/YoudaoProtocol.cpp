@@ -88,6 +88,34 @@ QString mapLanguage(const QString &eshotTag, bool asSource)
     return QStringLiteral("en");
 }
 
+QVector<LanguageOption> targetLanguageOptions()
+{
+    // 名称一律用该语言自己的写法：既不用为 8 个界面语言各维护一份翻译，
+    // 用户也总能认出自己的母语。
+    return {
+        {QStringLiteral("zh-CHS"), QStringLiteral("简体中文")},
+        {QStringLiteral("zh-CHT"), QStringLiteral("繁體中文")},
+        {QStringLiteral("en"), QStringLiteral("English")},
+        {QStringLiteral("ja"), QStringLiteral("日本語")},
+        {QStringLiteral("ko"), QStringLiteral("한국어")},
+        {QStringLiteral("fr"), QStringLiteral("Français")},
+        {QStringLiteral("de"), QStringLiteral("Deutsch")},
+        {QStringLiteral("es"), QStringLiteral("Español")},
+        {QStringLiteral("pt"), QStringLiteral("Português")},
+        {QStringLiteral("ru"), QStringLiteral("Русский")},
+        {QStringLiteral("it"), QStringLiteral("Italiano")},
+        {QStringLiteral("ar"), QStringLiteral("العربية")},
+        {QStringLiteral("th"), QStringLiteral("ไทย")},
+        {QStringLiteral("vi"), QStringLiteral("Tiếng Việt")},
+        {QStringLiteral("id"), QStringLiteral("Bahasa Indonesia")},
+        {QStringLiteral("ms"), QStringLiteral("Bahasa Melayu")},
+        {QStringLiteral("tr"), QStringLiteral("Türkçe")},
+        {QStringLiteral("nl"), QStringLiteral("Nederlands")},
+        {QStringLiteral("pl"), QStringLiteral("Polski")},
+        {QStringLiteral("hi"), QStringLiteral("हिन्दी")}
+    };
+}
+
 bool parseResponse(const QByteArray &json, Result &out, QString &errorText)
 {
     out = Result();

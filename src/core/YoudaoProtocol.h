@@ -15,6 +15,12 @@ struct Region {
     QString target;
 };
 
+// 翻译目标语言：code 是有道接口认的代码，name 用该语言自己的写法。
+struct LanguageOption {
+    QString code;
+    QString name;
+};
+
 struct Result {
     QVector<Region> regions;
     QImage rendered;
@@ -32,6 +38,8 @@ extern const char *const kDefaultSecret; // VPaHE3kX_vl4BhgYiu2n
 QString genSign(const QByteArray &uploadBytes, const QString &salt, const QString &secret);
 QString randomSalt();                                   // "0." + 9 位零填充随机
 QString mapLanguage(const QString &eshotTag, bool asSource);
+// 可选的目标语言，顺序即界面顺序。
+QVector<LanguageOption> targetLanguageOptions();
 bool parseResponse(const QByteArray &json, Result &out, QString &errorText);
 QRect scaledBox(const QRect &box, double factor);       // 乘 factor 后夹紧到 >=0 且宽高 >=0
 QByteArray encodeUpload(const QImage &image, double &outScale, QString &outMime);

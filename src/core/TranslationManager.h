@@ -349,6 +349,7 @@ public:
     static QString ocrAutomatic()     { return tr("ocrAutomatic"); }
     static QString ocrLanguagePackMissing() { return tr("ocrLanguagePackMissing"); }
     static QString ocrEngine()               { return tr("ocrEngine"); }
+    static QString ocrTargetLanguage()       { return tr("ocrTargetLanguage"); }
     static QString ocrEngineLocal()          { return tr("ocrEngineLocal"); }
     static QString ocrEngineYoudao()         { return tr("ocrEngineYoudao"); }
     static QString ocrSourceText()           { return tr("ocrSourceText"); }
@@ -780,6 +781,7 @@ private:
         {"ocrProcessing",  {"Tanınıyor...", "Recognizing...", "Erkennung...", "Reconnaissance...", "Reconociendo...", "認識中...", "识别中...", "Распознавание..."}},
         {"ocrAutomatic",   {"Otomatik", "Automatic", "Automatisch", "Automatique", "Automático", "自動", "自动", "Автоматически"}},
         {"ocrEngine",      {"OCR Motoru", "OCR Engine", "OCR-Engine", "Moteur OCR", "Motor OCR", "OCR エンジン", "OCR 引擎", "Движок OCR"}},
+        {"ocrTargetLanguage", {"Hedef dil", "Target language", "Zielsprache", "Langue cible", "Idioma de destino", "翻訳先の言語", "目标语言", "Целевой язык"}},
         {"ocrEngineLocal", {"Yerel Tesseract", "Local Tesseract", "Lokales Tesseract", "Tesseract local", "Tesseract local", "ローカル Tesseract", "本地 Tesseract", "Локальный Tesseract"}},
         {"ocrEngineYoudao",{"Youdao Çevrimiçi Çeviri", "Youdao Online Translate", "Youdao Online-Übersetzung", "Traduction en ligne Youdao", "Traducción en línea de Youdao", "有道オンライン翻訳", "有道在线翻译", "Онлайн-перевод Youdao"}},
         {"ocrSourceText",  {"Kaynak Metin", "Source Text", "Quelltext", "Texte source", "Texto de origen", "原文", "原文", "Исходный текст"}},
