@@ -2,11 +2,21 @@
 
 Native screenshot, annotation, OCR, visual-search, upload, GIF, and video capture for Windows and Linux.
 
-[![Latest release](https://img.shields.io/github/v/tag/Benoks/EShot?label=release&sort=semver)](https://github.com/Benoks/EShot/releases/latest)
-[![Build](https://github.com/Benoks/EShot/actions/workflows/build.yml/badge.svg)](https://github.com/Benoks/EShot/actions/workflows/build.yml)
+**English** | [简体中文](README.zh-CN.md)
+
+[![Build](https://github.com/ZombieCoke/EShot_youdao/actions/workflows/build.yml/badge.svg)](https://github.com/ZombieCoke/EShot_youdao/actions/workflows/build.yml)
 [![Platforms](https://img.shields.io/badge/platform-Windows%2010%2F11%20%7C%20Linux-4b8bbe)](#platform-support)
 [![Qt](https://img.shields.io/badge/Qt-6.x-41cd52)](https://www.qt.io/)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+
+> [!NOTE]
+> This is a fork of [Benoks/EShot](https://github.com/Benoks/EShot), maintained at [ZombieCoke/EShot_youdao](https://github.com/ZombieCoke/EShot_youdao). Compared with upstream it differs in three places:
+>
+> - **OCR runs on Youdao online recognition by default.** One request returns the recognized lines, their bounding boxes and the translated text, so the result dialog can show both languages and paste the server-rendered translation back over the selection. Local Tesseract stays available as an offline engine.
+> - **Translation mode has its own hotkey.** Bind it once and a capture goes straight to translation and pins the result in place, without opening the OCR dialog.
+> - **Mixed-DPI multi-monitor layouts are rebuilt from physical pixels** on KDE Wayland, fixing a canvas offset that shifted the capture and misplaced pinned images.
+>
+> Builds are produced for Linux only. Windows users should use the upstream releases.
 
 > [!IMPORTANT]
 > EShot supports KDE Plasma 6 Wayland and GNOME Wayland. KDE Plasma is the primary tested Linux target, while GNOME support is stable for normal use but has received less broad real-world testing. Other desktop environments and compositors remain unsupported and are unlikely to work correctly.
@@ -25,12 +35,11 @@ EShot keeps the complete screenshot workflow in one compact tray application: se
 
 ## Platform support
 
-| Platform | Status | Distribution |
+| Platform | Status | Distribution in this fork |
 | --- | --- | --- |
-| Windows 10/11 x64 | Stable | Installer and portable ZIP |
-| Windows 11 ARM64 | Stable | Native ARM64 installer and portable ZIP |
-| Linux x86_64 (KDE Plasma 6 Wayland) | Stable | AppImage, AUR, and portable archive |
-| Linux x86_64 (GNOME Wayland) | Stable, less broadly tested | AppImage, AUR, and portable archive |
+| Linux x86_64 (KDE Plasma 6 Wayland) | Stable, primary target | AppImage and source build |
+| Linux x86_64 (GNOME Wayland) | Stable, less broadly tested | AppImage and source build |
+| Windows 10/11 x64 and ARM64 | Source builds only | Use the upstream installers |
 | Other Linux desktops | Unsupported | Unlikely to work correctly |
 
 ## Features
@@ -41,7 +50,7 @@ EShot keeps the complete screenshot workflow in one compact tray application: se
 - Resize and rotate selected text and shapes directly on the canvas
 - Hold `Shift` while drawing with the highlighter to lock it to the nearest axis
 - Undo/redo, selection locking, color controls, and configurable toolbar visibility
-- Tesseract OCR with selectable language packs, copy, retry, and one-click Google Translate handoff
+- Youdao online OCR by default, returning recognized lines, per-line boxes and the translation in one request, with local Tesseract available as an offline engine
 - Google Lens or Yandex Images visual search for the selected region
 - Screenshot uploads to Catbox, Uguu, Litterbox, TmpFiles.org, temp.sh, Allwebs, Radikal Cloud, Google Drive, and Yandex Disk
 - Always-on-top pinned captures
@@ -61,11 +70,16 @@ Double-clicking a screen during selection captures that complete monitor. The ov
 
 ## Install
 
-Download the latest build from [GitHub Releases](https://github.com/Benoks/EShot/releases/latest).
+This fork does not publish releases. Build the AppImage from source (see [Build from source](#build-from-source)); the output is `packages/EShot-v<version>-x86_64.AppImage`. Upstream builds stay at [Benoks/EShot releases](https://github.com/Benoks/EShot/releases/latest).
+
+> [!IMPORTANT]
+> The AppImage built from this fork is produced on Ubuntu 24.04 and needs **glibc 2.38 or newer**. It starts on Ubuntu 24.04/24.10/25.04 and current Fedora. Debian 12, Ubuntu 22.04 and older distributions cannot run it.
 
 ### Windows
 
-1. Download `EShot_Setup_v<version>_x64.exe` or the ARM64 installer.
+This fork ships no Windows binaries. Build them from source (see [Build from source](#build-from-source)) or use the upstream installer.
+
+1. Download the upstream `EShot_Setup_v<version>_x64.exe` or the ARM64 installer.
 2. Run the installer and choose the optional FFmpeg/OCR components you need.
 3. Launch EShot from the Start menu or system tray.
 
@@ -103,11 +117,11 @@ The AppImage is portable. Opening it does not install EShot system-wide. The Wel
 
 When **Add EShot to the application menu and install shortcuts** is selected, the setup copies the AppImage to `~/.local/opt/EShot/EShot.AppImage`, creates an application-menu entry, and restarts from that managed copy after successful setup. Launch EShot from the application menu after that point. The original file in Downloads remains a separate portable copy and can be removed once the menu entry works. If the option is not selected, nothing is copied and you continue launching the same AppImage manually.
 
-The AppImage bundles EShot and Qt. Optional media, OCR, and desktop-integration packages remain system packages. Skipped dependencies can be installed later from **Settings → Open Linux dependency setup**. A native package such as the AUR package is the smoother option for users who want an ordinary application-menu entry and package-manager updates.
+The AppImage bundles EShot and Qt. Optional media, OCR, and desktop-integration packages remain system packages. Skipped dependencies can be installed later from **Settings → Open Linux dependency setup**. A native package is the smoother option for users who want an ordinary application-menu entry and package-manager updates; on Arch that means building this fork locally, because the AUR packages track upstream.
 
 Each release also includes `EShot-v<version>-linux-x64.tar.gz` for users who prefer an unpacked build. Unlike the AppImage, this archive relies on compatible Qt and runtime libraries installed by the Linux distribution.
 
-Integrated AppImages are stored for the current user under `~/.local/opt/EShot`. EShot checks for updates and always keeps manual updating available. If a per-user Windows installation or integrated AppImage is at least two stable releases behind, EShot downloads the matching release asset, verifies its GitHub SHA-256 digest, updates silently, and restarts. All-users Windows installations require an administrator for updates. The AUR package (`eshot-bin`) and the `.tar.gz` archive are updated through the package manager or a new download; EShot only reports new releases there and does not replace them itself.
+Integrated AppImages are stored for the current user under `~/.local/opt/EShot`. EShot checks for updates and always keeps manual updating available. If a per-user Windows installation or integrated AppImage is at least two stable releases behind, EShot downloads the matching release asset, verifies its GitHub SHA-256 digest, updates silently, and restarts. All-users Windows installations require an administrator for updates. Upstream's AUR package (`eshot-bin`) and the `.tar.gz` archive are updated through the package manager or a new download; EShot only reports new releases there and does not replace them itself.
 
 ### Disable automatic update checks for managed portable installs
 
@@ -120,13 +134,34 @@ update behavior. The marker does not change where EShot stores settings.
 
 ### Arch Linux and CachyOS
 
-Install the EShot-maintained AUR binary package with an AUR helper:
+The AUR packages `eshot-bin` and `eshot-git` follow **upstream Benoks/EShot**, not this fork. Installing them gives you a build without the Youdao OCR engine, the dedicated translate hotkey, and the mixed-DPI capture fix described above, so treat them as plain upstream EShot.
+
+To run this fork on Arch or CachyOS, pick one of these.
+
+**AppImage built from this repository.** Mounting it needs FUSE 2:
 
 ```bash
-yay -S eshot-bin
+sudo pacman -S --needed fuse2
+chmod +x EShot-v4.7.0-x86_64.AppImage
+./EShot-v4.7.0-x86_64.AppImage
 ```
 
-The package installs the release AppImage and its desktop entry through pacman. Update it with your normal AUR helper rather than EShot's AppImage updater.
+Without FUSE, run it unpacked instead:
+
+```bash
+./EShot-v4.7.0-x86_64.AppImage --appimage-extract-and-run
+```
+
+**Build from source.** The dependency script installs the toolchain and the runtime packages:
+
+```bash
+bash scripts/linux/install-cachyos-deps.sh
+cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+cmake --build build -j"$(nproc)"
+./build/bin/EShot
+```
+
+That covers `base-devel`, `cmake`, `ninja`, `qt6-base`, `qt6-wayland`, `libx11`, `libxkbcommon`, `libsecret`, FFmpeg, Tesseract, and the PipeWire/GStreamer stack. `libsecret` matters at configure time: the build requires its headers, and the same package provides them.
 
 ### Uninstall on Linux
 
@@ -277,6 +312,15 @@ Build the AppImage:
 
 ```bash
 ./scripts/linux/build-appimage.sh
+```
+
+The script writes `packages/EShot-v<version>-x86_64.AppImage`. It installs `libssl.so.3` into the bundle explicitly, because Qt loads the OpenSSL backend at runtime and `linuxdeploy --plugin qt` does not pull it in; without it every HTTPS request fails with `TLS initialization failed`.
+
+Run the tests (they need a display, so wrap them on a headless machine):
+
+```bash
+ctest --test-dir build-linux --output-on-failure
+xvfb-run -a ctest --test-dir build-linux --output-on-failure
 ```
 
 ### Windows
